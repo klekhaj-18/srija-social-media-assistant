@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full" :class="{ 'dark': darkMode }" x-data="themeManager" x-cloak>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Srija Social Media Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/app.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100"
+      x-data="app"
+      @toast.window="showToast($event.detail.message, $event.detail.type)">
+
+    <div class="flex h-full">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col shrink-0">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-800">
+                <h1 class="text-lg font-bold tracking-tight">Srija</h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Social Media Assistant</p>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-1">
+                <button @click="navigate('dashboard')"
+                        :class="currentPage === 'dashboard' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'"
+                        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+                    Dashboard
+                </button>
+
+                <button @click="navigate('create')"
+                        :class="currentPage === 'create' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'"
+                        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+                    Create Post
+                </button>
+
+                <button @click="navigate('drafts')"
+                        :class="currentPage === 'drafts' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'"
+                        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    Drafts Bank
+                </button>
+
+                <button @click="navigate('calendar')"
+                        :class="currentPage === 'calendar' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'"
+                        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Calendar
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-1">
+                    <button @click="navigate('settings')"
+                            :class="currentPage === 'settings' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'"
+                            class="flex-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Settings
+                    </button>
+                    <button @click="if(confirm('Shut down the server?')) {
+                        fetch('/api/shutdown', {method:'POST'}).then(() => {
+                            document.body.innerHTML = '<div style=\'display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666;\'><div style=\'text-align:center;\'><h2>Server stopped</h2><p>You can close this tab.</p></div></div>';
+                        }).catch(() => {});
+                    }"
+                            title="Shutdown server"
+                            class="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/></svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Dashboard -->
+            <div x-show="currentPage === 'dashboard'" x-cloak x-data="dashboardPage" class="p-8">
+                <h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Instagram</h3>
+                        <p class="mt-2 text-3xl font-bold" x-text="connected ? '1' : '0'"></p>
+                        <p class="mt-1 text-sm text-gray-500">
+                            <template x-if="!connected"><span>Connect in Settings</span></template>
+                            <template x-if="connected"><span x-text="'@' + username"></span></template>
+                        </p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Drafts</h3>
+                        <p class="mt-2 text-3xl font-bold" x-text="draftCount"></p>
+                        <p class="mt-1 text-sm text-gray-500" x-text="draftCount === 0 ? 'No drafts yet' : readyCount + ' ready to publish'"></p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Published</h3>
+                        <p class="mt-2 text-3xl font-bold" x-text="publishedCount"></p>
+                        <p class="mt-1 text-sm text-gray-500" x-text="publishedCount === 0 ? 'No posts yet' : 'on Instagram'"></p>
+                    </div>
+                </div>
+
+                <div x-show="recentPosts.length > 0" class="mt-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                    <h3 class="text-lg font-semibold mb-4">Recent Posts</h3>
+                    <div class="space-y-3">
+                        <template x-for="post in recentPosts" :key="post.id">
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200">Instagram</span>
+                                    <span class="text-sm" x-text="post.draft_title || 'Untitled'"></span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs text-gray-500" x-text="new Date(post.published_at).toLocaleDateString()"></span>
+                                    <a x-show="post.post_url" :href="post.post_url" target="_blank" class="text-xs text-pink-600 hover:underline">View</a>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                    <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+                    <div class="flex gap-3">
+                        <button @click="$dispatch('navigate-to', {page: 'create'})" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium transition-colors">
+                            Create New Post
+                        </button>
+                        <button @click="$dispatch('navigate-to', {page: 'drafts'})" class="px-4 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors">
+                            View Drafts
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Post -->
+            <div x-show="currentPage === 'create'" x-cloak x-data="createPost" class="p-8">
+                <h2 class="text-2xl font-bold mb-6">Create Post</h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                            <label class="block text-sm font-medium mb-2">Content Type</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <template x-for="ct in contentTypes" :key="ct.value">
+                                    <button @click="contentType = ct.value"
+                                            :class="contentType === ct.value ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'"
+                                            class="p-3 rounded-lg border text-left transition-colors">
+                                        <p class="text-sm font-medium" x-text="ct.label"></p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="ct.desc"></p>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                            <label class="block text-sm font-medium mb-2">Tone <span class="text-xs text-gray-400 font-normal">(select one or more)</span></label>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="t in tones" :key="t.value">
+                                    <button @click="toneSelections.includes(t.value) ? (toneSelections = toneSelections.filter(v => v !== t.value)) : toneSelections.push(t.value)"
+                                            :class="toneSelections.includes(t.value) ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300' : 'border-gray-200 dark:border-gray-700'"
+                                            class="px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors"
+                                            x-text="t.label">
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                            <label class="block text-sm font-medium mb-2">Context / Notes</label>
+                            <textarea x-model="context" rows="3" placeholder="Describe the post idea, what's in the photo, where you are..."
+                                      class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm resize-none outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"></textarea>
+                        </div>
+
+                        <button @click="generateContent()" :disabled="generating"
+                                class="w-full py-3 bg-pink-600 hover:bg-pink-700 disabled:bg-pink-400 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                            <svg x-show="generating" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                            <span x-text="generating ? 'Generating...' : (chatHistory.length > 0 ? 'Regenerate' : 'Generate with AI')"></span>
+                        </button>
+
+                        <!-- AI Chat -->
+                        <div x-show="chatHistory.length > 0" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                            <div class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                                <h3 class="text-sm font-medium">AI Chat</h3>
+                                <button @click="resetChat()" class="text-xs text-gray-400 hover:text-gray-600">Reset</button>
+                            </div>
+                            <div class="max-h-64 overflow-y-auto p-4 space-y-3">
+                                <template x-for="(msg, idx) in chatHistory" :key="idx">
+                                    <div :class="msg.role === 'user' ? 'ml-8' : 'mr-8'">
+                                        <div :class="msg.role === 'user' ? 'bg-pink-50 dark:bg-pink-900/20' : 'bg-gray-50 dark:bg-gray-800'" class="p-3 rounded-lg">
+                                            <p class="text-xs font-medium mb-1" :class="msg.role === 'user' ? 'text-pink-600 dark:text-pink-400' : 'text-gray-500'" x-text="msg.role === 'user' ? 'You' : 'AI'"></p>
+                                            <p class="text-sm whitespace-pre-line" x-text="msg.content"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+                                <form @submit.prevent="refineContent()" class="flex gap-2">
+                                    <input x-model="refinementInput" type="text" placeholder="Make it shorter, add hashtags..."
+                                           class="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                                    <button type="submit" :disabled="generating || !refinementInput.trim()"
+                                            class="px-4 py-2 bg-pink-600 hover:bg-pink-700 disabled:bg-pink-400 text-white rounded-lg text-sm font-medium transition-colors">
+                                        Send
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Preview + Save -->
+                    <div class="space-y-4">
+                        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                            <label class="block text-sm font-medium mb-2">Caption Preview</label>
+                            <textarea x-model="generatedText" rows="12"
+                                      class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm resize-none outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                      placeholder="Generate content with AI or write your caption here..."></textarea>
+                            <p class="text-xs text-gray-400 mt-1" x-text="generatedText.length + '/2200 characters'"></p>
+                        </div>
+
+                        <div x-show="generatedText" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                            <label class="block text-sm font-medium mb-2">Save as Draft</label>
+                            <input x-model="draftTitle" type="text" placeholder="Draft title..."
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent mb-3">
+                            <button @click="saveDraft()" :disabled="saving"
+                                    class="w-full py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg text-sm font-medium transition-colors">
+                                <span x-text="saving ? 'Saving...' : 'Save Draft'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drafts Bank -->
+            <div x-show="currentPage === 'drafts'" x-cloak x-data="draftsBank" class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold">Drafts Bank</h2>
+                    <div class="flex gap-2">
+                        <button @click="setView('kanban')" :class="viewMode === 'kanban' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 dark:bg-gray-800'" class="px-3 py-1.5 rounded-lg text-xs font-medium">Kanban</button>
+                        <button @click="setView('grid')" :class="viewMode === 'grid' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 dark:bg-gray-800'" class="px-3 py-1.5 rounded-lg text-xs font-medium">Grid</button>
+                    </div>
+                </div>
+
+                <div x-show="loading" class="text-center py-12 text-gray-500">Loading...</div>
+                <div x-show="!loading && drafts.length === 0" class="text-center py-12">
+                    <p class="text-gray-500">No drafts yet.</p>
+                    <p class="text-sm text-gray-400 mt-1">Create your first post to get started.</p>
+                </div>
+
+                <!-- Kanban View -->
+                <div x-show="!loading && drafts.length > 0 && viewMode === 'kanban'" class="flex gap-4 overflow-x-auto pb-4">
+                    <template x-for="col in columns" :key="col">
+                        <div class="min-w-[250px] flex-1">
+                            <div class="mb-3 flex items-center gap-2">
+                                <span class="text-sm font-semibold" x-text="columnLabels[col]"></span>
+                                <span class="text-xs text-gray-400" x-text="'(' + draftsByStatus(col).length + ')'"></span>
+                            </div>
+                            <div class="space-y-2">
+                                <template x-for="draft in draftsByStatus(col)" :key="draft.id">
+                                    <div @click="openEdit(draft)"
+                                         class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-3 cursor-pointer hover:border-pink-300 dark:hover:border-pink-700 transition-colors">
+                                        <p class="text-sm font-medium truncate" x-text="draft.title"></p>
+                                        <p class="text-xs text-gray-500 mt-1 truncate" x-text="draft.body.substring(0, 80) + (draft.body.length > 80 ? '...' : '')"></p>
+                                        <div class="flex items-center gap-2 mt-2">
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded font-medium" :class="statusColor(draft.status)" x-text="draft.content_type"></span>
+                                            <span x-show="draft.images.length > 0" class="text-[10px] text-gray-400" x-text="draft.images.length + ' img'"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Grid View -->
+                <div x-show="!loading && drafts.length > 0 && viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <template x-for="draft in drafts" :key="draft.id">
+                        <div @click="openEdit(draft)"
+                             class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 cursor-pointer hover:border-pink-300 dark:hover:border-pink-700 transition-colors">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-sm truncate" x-text="draft.title"></h4>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ml-2" :class="statusColor(draft.status)" x-text="draft.status"></span>
+                            </div>
+                            <p class="text-xs text-gray-500 line-clamp-3" x-text="draft.body"></p>
+                            <div class="flex items-center gap-2 mt-3 text-xs text-gray-400">
+                                <span x-text="draft.content_type"></span>
+                                <span x-show="draft.images.length > 0" x-text="'| ' + draft.images.length + ' images'"></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Edit Modal -->
+                <div x-show="editModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="editModal = false">
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 w-full max-w-2xl mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Edit Draft</h3>
+                            <button @click="editModal = false" class="text-gray-400 hover:text-gray-600">&times;</button>
+                        </div>
+                        <template x-if="editDraft">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Title</label>
+                                    <input x-model="editForm.title" type="text" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-pink-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Status</label>
+                                    <select x-model="editForm.status" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm outline-none">
+                                        <option value="idea">Idea</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="ready">Ready</option>
+                                        <option value="scheduled">Scheduled</option>
+                                        <option value="published">Published</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Caption</label>
+                                    <textarea x-model="editForm.body" rows="8" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm resize-none outline-none focus:ring-2 focus:ring-pink-500"></textarea>
+                                </div>
+
+                                <!-- Images -->
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Images</label>
+                                    <div class="flex flex-wrap gap-2 mb-2">
+                                        <template x-for="img in editDraft.images" :key="img.id">
+                                            <div class="relative group">
+                                                <img :src="'/' + img.file_path" class="w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+                                                <button @click="deleteImage(editDraft.id, img.id)"
+                                                        class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <label class="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
+                                        <span x-text="uploadingImage ? 'Uploading...' : '+ Add Image'"></span>
+                                        <input type="file" accept="image/*" class="hidden" @change="uploadImage($event)" :disabled="uploadingImage">
+                                    </label>
+                                </div>
+
+                                <div class="flex justify-between pt-2">
+                                    <button @click="deleteDraft(editDraft.id)" class="px-4 py-2 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">Delete</button>
+                                    <div class="flex gap-3">
+                                        <button @click="openPublish(editDraft.id)" x-show="editDraft.images.length > 0"
+                                                class="px-4 py-2 text-sm font-medium rounded-lg bg-pink-600 hover:bg-pink-700 text-white">Publish</button>
+                                        <button @click="saveEdit()" class="px-4 py-2 text-sm font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Publish Modal -->
+                <div x-show="publishModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="publishModal = false">
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 w-full max-w-md mx-4 shadow-xl">
+                        <h3 class="text-lg font-semibold mb-4">Publish to Instagram</h3>
+                        <p class="text-sm text-gray-500 mb-4">This will publish the draft to your connected Instagram account.</p>
+                        <div class="flex justify-end gap-3">
+                            <button @click="publishModal = false" class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Cancel</button>
+                            <button @click="publishNow()" :disabled="publishing"
+                                    class="px-4 py-2 text-sm font-medium rounded-lg bg-pink-600 hover:bg-pink-700 disabled:bg-pink-400 text-white">
+                                <span x-text="publishing ? 'Publishing...' : 'Publish Now'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar -->
+            <div x-show="currentPage === 'calendar'" x-cloak x-data="calendarPage" class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold">Calendar</h2>
+                    <div class="flex items-center gap-3">
+                        <button @click="prevMonth()" class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+                        <span class="text-sm font-medium min-w-[140px] text-center" x-text="monthNames[month] + ' ' + year"></span>
+                        <button @click="nextMonth()" class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+                        <button @click="today()" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Today</button>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                    <div class="grid grid-cols-7">
+                        <template x-for="wd in weekDays" :key="wd">
+                            <div class="p-3 text-center text-xs font-medium text-gray-500 border-b border-gray-200 dark:border-gray-800" x-text="wd"></div>
+                        </template>
+                        <template x-for="(d, i) in days" :key="i">
+                            <div class="min-h-[80px] p-2 border-b border-r border-gray-100 dark:border-gray-800"
+                                 :class="d && d.isToday ? 'bg-pink-50 dark:bg-pink-900/10' : ''">
+                                <template x-if="d">
+                                    <div>
+                                        <p class="text-xs font-medium" :class="d.isToday ? 'text-pink-600 dark:text-pink-400' : 'text-gray-500'" x-text="d.day"></p>
+                                        <div class="mt-1 space-y-0.5">
+                                            <template x-for="ev in d.events" :key="ev.id">
+                                                <a :href="ev.post_url || '#'" :target="ev.post_url ? '_blank' : ''"
+                                                   class="block text-[10px] px-1 py-0.5 rounded truncate"
+                                                   :class="ev.type === 'published' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'"
+                                                   x-text="ev.title"></a>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div x-show="currentPage === 'settings'" x-cloak x-data="settingsPage" class="p-8">
+                <h2 class="text-2xl font-bold mb-6">Settings</h2>
+
+                <div class="space-y-6 max-w-2xl">
+                    <!-- AI Key -->
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                        <h3 class="text-base font-semibold mb-1">Anthropic API Key</h3>
+                        <p class="text-sm text-gray-500 mb-4">Used for AI caption generation (Claude Haiku).</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                  :class="anthropicConfigured ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'"
+                                  x-text="anthropicConfigured ? 'Configured' : 'Not set'"></span>
+                        </div>
+                        <div class="flex gap-2">
+                            <input x-model="anthropicKey" type="password" placeholder="sk-ant-..."
+                                   class="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-pink-500">
+                            <button @click="testAIKey()" :disabled="!anthropicKey || testingKey"
+                                    class="px-3 py-2 text-sm rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 font-medium disabled:opacity-50">
+                                <span x-text="testingKey ? 'Testing...' : 'Test'"></span>
+                            </button>
+                            <button @click="saveAIKey()" :disabled="!anthropicKey"
+                                    class="px-3 py-2 text-sm rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-medium disabled:opacity-50">Save</button>
+                        </div>
+                        <div x-show="testResult" class="mt-2 text-xs" :class="testResult?.success ? 'text-green-600' : 'text-red-600'" x-text="testResult?.message"></div>
+                    </div>
+
+                    <!-- Instagram OAuth -->
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                        <h3 class="text-base font-semibold mb-1">Instagram Connection</h3>
+                        <p class="text-sm text-gray-500 mb-4">Connect your Instagram Creator account to publish posts.</p>
+
+                        <div class="space-y-3 mb-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Instagram App ID</label>
+                                <input x-model="instagramAppId" type="text" placeholder="Enter App ID..."
+                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Instagram App Secret</label>
+                                <input x-model="instagramAppSecret" type="password" placeholder="Enter App Secret..."
+                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                            <button @click="saveOAuthCreds()" :disabled="!instagramAppId && !instagramAppSecret"
+                                    class="px-4 py-2 text-sm rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-medium disabled:opacity-50">Save Credentials</button>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                  :class="igConnected ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-800'"
+                                  x-text="igConnected ? 'Connected: @' + igUsername : 'Not connected'"></span>
+                            <button x-show="!igConnected && instagramConfigured && encryptionConfigured" @click="connectInstagram()"
+                                    class="px-4 py-2 text-sm rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium">
+                                Connect Instagram
+                            </button>
+                            <button x-show="igConnected" @click="disconnectInstagram()"
+                                    class="px-3 py-1.5 text-xs rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium">Disconnect</button>
+                        </div>
+                    </div>
+
+                    <!-- Encryption Key -->
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                        <h3 class="text-base font-semibold mb-1">Encryption Key</h3>
+                        <p class="text-sm text-gray-500 mb-4">Required for encrypting stored tokens. Generate once.</p>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                  :class="encryptionConfigured ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'"
+                                  x-text="encryptionConfigured ? 'Configured' : 'Not set'"></span>
+                            <button x-show="!encryptionConfigured" @click="generateEncryptionKey()"
+                                    class="px-4 py-2 text-sm rounded-lg bg-gray-800 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-700 dark:hover:bg-gray-100">
+                                Generate Key
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Google Drive -->
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                        <h3 class="text-base font-semibold mb-1">Google Drive (Image Hosting)</h3>
+                        <p class="text-sm text-gray-500 mb-4">Used to temporarily host images for Instagram publishing.</p>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                  :class="driveConfigured ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'"
+                                  x-text="driveConfigured ? 'Configured' : 'Not set'"></span>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Service Account JSON File Path</label>
+                                <input x-model="driveCredsFile" type="text" placeholder="e.g., C:/path/to/service-account.json"
+                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Drive Folder ID</label>
+                                <input x-model="driveFolderId" type="text" placeholder="e.g., 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2wt6A"
+                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                            <button @click="saveDriveCreds()" :disabled="!driveCredsFile && !driveFolderId"
+                                    class="px-4 py-2 text-sm rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-medium disabled:opacity-50">Save</button>
+                        </div>
+                    </div>
+
+                    <!-- Theme -->
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                        <h3 class="text-base font-semibold mb-3">Theme</h3>
+                        <div class="flex gap-2">
+                            <button @click="setTheme('light')" :class="themeChoice === 'light' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 dark:bg-gray-800'" class="px-4 py-2 rounded-lg text-sm font-medium">Light</button>
+                            <button @click="setTheme('dark')" :class="themeChoice === 'dark' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 dark:bg-gray-800'" class="px-4 py-2 rounded-lg text-sm font-medium">Dark</button>
+                            <button @click="setTheme('system')" :class="themeChoice === 'system' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 dark:bg-gray-800'" class="px-4 py-2 rounded-lg text-sm font-medium">System</button>
+                        </div>
+                    </div>
+
+                    <!-- Backup -->
+                    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                        <h3 class="text-base font-semibold mb-3">Backup</h3>
+                        <div class="flex gap-3">
+                            <button @click="exportBackup()" class="px-4 py-2 text-sm rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 font-medium">Export Settings</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div x-show="toast.show" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 translate-y-2"
+         class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium max-w-sm"
+         :class="{
+             'bg-green-600 text-white': toast.type === 'success',
+             'bg-red-600 text-white': toast.type === 'error',
+             'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900': toast.type === 'info',
+         }"
+         x-text="toast.message">
+    </div>
+</body>
+</html>

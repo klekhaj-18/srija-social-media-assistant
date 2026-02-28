@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SrijaSocial" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#EC4899</item>
+        <item name="colorPrimaryVariant">#DB2777</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#A855F7</item>
+    </style>
+</resources>
